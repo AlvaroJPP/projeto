@@ -39,9 +39,23 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Install Android SDK packages
+        shell: bash
         run: |
-          yes | sdkmanager --licenses
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
+          echo "Using Android SDK at: $SDK_ROOT"
+
+          # Ensure sdkmanager has the current command-line tools installed.
+          sdkmanager --sdk_root="$SDK_ROOT" "cmdline-tools;latest"
+
+          # Accept licenses after the command-line tools are available.
+          yes | sdkmanager --sdk_root="$SDK_ROOT" --licenses
+
+          # Install the SDK components required by this project.
+          sdkmanager --sdk_root="$SDK_ROOT" \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;35.0.0"
 
       - name: Build debug APK
         run: gradle --no-daemon assembleDebug
