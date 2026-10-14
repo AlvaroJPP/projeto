@@ -159,11 +159,20 @@ class ScreenBroadcastService : Service() {
                 try {
                     val message = JSONObject(text)
                     when (message.optString("type")) {
+                        // The server reports the room state on join. Use it as a second
+                        // trigger in addition to peer-joined, so an already-present viewer
+                        // cannot leave the broadcaster waiting forever for an offer.
+                        "joined" -> {
+                            if (message.optInt("peers", 0) > 0) createOffer()
+                        }
                         "peer-joined" -> createOffer()
                         "answer" -> {
                             val sdp = message.optString("sdp")
                             peer?.setRemoteDescription(object : SimpleSdpObserver() {
                                 override fun onSetSuccess() { flushCandidates() }
+                                override fun onSetFailure(error: String) {
+                                    updateNotification("Falha ao aplicar resposta WebRTC: $error")
+                                }
                             }, SessionDescription(SessionDescription.Type.ANSWER, sdp))
                         }
                         "candidate" -> {
@@ -187,7 +196,17 @@ class ScreenBroadcastService : Service() {
             override fun onCreateSuccess(description: SessionDescription) {
                 peer?.setLocalDescription(object : SimpleSdpObserver() {
                     override fun onSetSuccess() {
+                        if (socket == null) {
+                            hasOffered = false
+                            updateNotification("Oferta pronta, mas a sinalização está desconectada.")
+                            return
+                        }
                         sendSignal(JSONObject().put("type", "offer").put("sdp", description.description))
+                        updateNotification("Oferta WebRTC enviada; aguardando resposta do navegador.")
+                    }
+                    override fun onSetFailure(error: String) {
+                        hasOffered = false
+                        updateNotification("Falha ao definir oferta WebRTC: $error")
                     }
                 }, description)
             }
