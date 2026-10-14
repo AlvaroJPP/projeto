@@ -4,7 +4,7 @@ const path = require('node:path');
 const { WebSocketServer, WebSocket } = require('ws');
 
 const host = process.env.HOST || '0.0.0.0';
-const port = Number(process.env.PORT || 8080);
+const port = Number(process.env.PORT || 5050);
 const webRoot = path.resolve(__dirname, '../web');
 const mimeTypes = {
   '.html': 'text/html; charset=utf-8',
