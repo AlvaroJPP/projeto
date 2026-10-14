@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark light" />
+  <title>MicroDroid Web Runtime</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="shell">
+    <header><div class="mark">MD</div><div><h1>MicroDroid</h1><p>Receptor de transmissão de tela</p></div></header>
+    <section class="panel controls">
+      <label>Servidor de sinalização (WebSocket)
+        <input id="signal" value="" placeholder="Automático: usa o mesmo endereço desta página" autocomplete="url" />
+      </label>
+      <label>Código da sala
+        <input id="room" value="sala-123" maxlength="80" autocomplete="off" />
+      </label>
+      <button id="connect">Conectar e aguardar transmissão</button>
+      <button id="disconnect" class="secondary" disabled>Desconectar</button>
+      <p id="status" role="status">Desconectado. Abra o broadcaster e use o mesmo código de sala.</p>
+    </section>
+    <section class="panel screen-panel">
+      <div class="screen-heading"><h2>Tela recebida</h2><span id="live" class="pill">OFFLINE</span></div>
+      <video id="screen" autoplay playsinline controls></video>
+      <p class="hint">A transmissão só aparece depois que o Android autoriza a captura e o WebRTC conecta.</p>
+    </section>
+    <footer>MicroDroid Broadcaster · MVP 0.1</footer>
+  </main>
+  <script type="module" src="main.js"></script>
+</body>
+</html>
