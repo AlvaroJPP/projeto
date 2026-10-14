@@ -38,11 +38,8 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
-          # Override the action's deprecated default package list ("tools platform-tools").
-          packages: |
-            platform-tools
-            platforms;android-35
-            build-tools;35.0.0
+          # The action splits this input on spaces; do not use a YAML multiline list.
+          packages: "platform-tools platforms;android-35 build-tools;35.0.0"
 
       - name: Build debug APK
         run: gradle --no-daemon assembleDebug
