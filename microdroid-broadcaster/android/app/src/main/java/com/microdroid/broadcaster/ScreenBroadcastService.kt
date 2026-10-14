@@ -10,6 +10,7 @@ import android.media.projection.MediaProjection
 import android.os.Build
 import android.os.IBinder
 import android.util.DisplayMetrics
+import android.util.Log
 import android.view.WindowManager
 import androidx.core.app.NotificationCompat
 import org.json.JSONObject
@@ -72,20 +73,30 @@ class ScreenBroadcastService : Service() {
             stopSelf()
             return START_NOT_STICKY
         }
-        if (Build.VERSION.SDK_INT >= 29) {
-            startForeground(NOTIFICATION_ID, buildNotification("Preparando captura de tela"), android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION)
-        } else {
-            startForeground(NOTIFICATION_ID, buildNotification("Preparando captura de tela"))
-        }
         try {
+            if (Build.VERSION.SDK_INT >= 29) {
+                startForeground(
+                    NOTIFICATION_ID,
+                    buildNotification("Preparando captura de tela"),
+                    android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
+                )
+            } else {
+                startForeground(NOTIFICATION_ID, buildNotification("Preparando captura de tela"))
+            }
+
             // ScreenCapturerAndroid obtains MediaProjection from the one-time consent result.
             // Do not call getMediaProjection() here as well: Android 14+ forbids reusing the token.
             startWebRtc(resultData)
             connectSignaling(url)
             updateNotification("Aguardando receptor na sala $room")
         } catch (e: Exception) {
-            updateNotification("Falha ao iniciar: ${e.message ?: "erro"}")
-            stopSelf()
+            Log.e("MicroDroid", "Falha ao iniciar o serviço de transmissão", e)
+            updateNotification("Falha: ${e.javaClass.simpleName}: ${e.message ?: "sem detalhes"}")
+            // Keep the foreground service alive so the error remains visible in the notification.
+        } catch (e: LinkageError) {
+            Log.e("MicroDroid", "Falha ao carregar a biblioteca nativa de transmissão", e)
+            updateNotification("Falha nativa: ${e.javaClass.simpleName}")
+            // Keep the foreground service alive so the error remains visible in the notification.
         }
         return START_NOT_STICKY
     }
